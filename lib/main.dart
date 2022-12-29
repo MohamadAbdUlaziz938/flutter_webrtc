@@ -79,12 +79,14 @@ class _MyHomePageState extends State<MyHomePage> {
     };
 
     _localStream = await _getUserMedia();
-
-    RTCPeerConnection pc =
-        await createPeerConnection(configuration, offerSdpConstraints);
+    print('==== 1 ====');
+    RTCPeerConnection pc = await createPeerConnection({
+      ...{'sdpSemantics': 'plan-b'},
+      ...configuration
+    }, offerSdpConstraints);
 
     pc.addStream(_localStream!);
-
+    print('==== 2 ====');
     pc.onIceCandidate = (e) {
       if (e.candidate != null) {
         print(json.encode({
@@ -113,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var session = parse(description.sdp.toString());
     print(json.encode(session));
     _offer = true;
-
+    sdpController.text=json.encode(session);
     _peerConnection!.setLocalDescription(description);
   }
 
@@ -154,8 +156,9 @@ class _MyHomePageState extends State<MyHomePage> {
     initRenderer();
     _createPeerConnecion().then((pc) {
       _peerConnection = pc;
+      setState(() {});
     });
-    // _getUserMedia();
+    //_getUserMedia();
     super.initState();
   }
 
@@ -177,14 +180,14 @@ class _MyHomePageState extends State<MyHomePage> {
               child: RTCVideoView(_localVideoRenderer),
             ),
           ),
-          // Flexible(
-          //   child: Container(
-          //     key: const Key('remote'),
-          //     margin: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-          //     decoration: const BoxDecoration(color: Colors.black),
-          //     child: RTCVideoView(_remoteVideoRenderer),
-          //   ),
-          // ),
+          Flexible(
+            child: Container(
+              key: const Key('remote'),
+              margin: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+              decoration: const BoxDecoration(color: Colors.black),
+              child: RTCVideoView(_remoteVideoRenderer),
+            ),
+          ),
         ]),
       );
 
