@@ -37,6 +37,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final _localVideoRenderer = RTCVideoRenderer();
   final _remoteVideoRenderer = RTCVideoRenderer();
   final sdpController = TextEditingController();
+  final myOffer = TextEditingController();
+  final myAnswer = TextEditingController();
+  final myCandidate = TextEditingController();
 
   bool _offer = false;
 
@@ -87,8 +90,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
     pc.addStream(_localStream!);
     print('==== 2 ====');
+    int i = 0;
     pc.onIceCandidate = (e) {
       if (e.candidate != null) {
+        if (i == 0) {
+          myCandidate.text = json.encode({
+            'candidate': e.candidate.toString(),
+            'sdpMid': e.sdpMid.toString(),
+            'sdpMlineIndex': e.sdpMLineIndex.toString(),
+          });
+        }
+        i++;
         print(json.encode({
           'candidate': e.candidate.toString(),
           'sdpMid': e.sdpMid.toString(),
@@ -115,7 +127,8 @@ class _MyHomePageState extends State<MyHomePage> {
     var session = parse(description.sdp.toString());
     print(json.encode(session));
     _offer = true;
-    sdpController.text=json.encode(session);
+    myOffer.text = json.encode(session);
+    // sdpController.text=json.encode(session);
     _peerConnection!.setLocalDescription(description);
   }
 
@@ -125,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var session = parse(description.sdp.toString());
     print(json.encode(session));
-
+    myOffer.text = json.encode(session);
     _peerConnection!.setLocalDescription(description);
   }
 
@@ -146,8 +159,8 @@ class _MyHomePageState extends State<MyHomePage> {
     String jsonString = sdpController.text;
     dynamic session = await jsonDecode(jsonString);
     print(session['candidate']);
-    dynamic candidate = RTCIceCandidate(
-        session['candidate'], session['sdpMid'], session['sdpMlineIndex']);
+    dynamic candidate = RTCIceCandidate(session['candidate'], session['sdpMid'],
+        int.parse(session['sdpMlineIndex']));
     await _peerConnection!.addCandidate(candidate);
   }
 
@@ -201,51 +214,83 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             videoRenderers(),
             Expanded(
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.1,
-                      child: TextField(
-                        controller: sdpController,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: 4,
-                        maxLength: TextField.noMaxLength,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: TextField(
+                          controller: sdpController,
+                          decoration: const InputDecoration(
+                              hintText: 'their offer or answer,candidate'),
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 4,
+                          maxLength: TextField.noMaxLength,
+                        ),
                       ),
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _createOffer,
-                        child: const Text("Offer"),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: TextFormField(
+                          controller: myOffer,
+                          keyboardType: TextInputType.multiline,
+                          decoration: const InputDecoration(
+                              hintText: 'my offer or answer to be share'),
+                          maxLines: 4,
+                          maxLength: TextField.noMaxLength,
+                        ),
                       ),
-                      const SizedBox(
-                        height: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: TextField(
+                          controller: myCandidate,
+                          keyboardType: TextInputType.multiline,
+                          decoration: const InputDecoration(
+                              hintText: 'my candidate to be share'),
+                          maxLines: 4,
+                          maxLength: TextField.noMaxLength,
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: _createAnswer,
-                        child: const Text("Answer"),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      ElevatedButton(
-                        onPressed: _setRemoteDescription,
-                        child: const Text("Set Remote Description"),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      ElevatedButton(
-                        onPressed: _addCandidate,
-                        child: const Text("Set Candidate"),
-                      ),
-                    ],
-                  )
-                ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _createOffer,
+                          child: const Text("Offer"),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                          onPressed: _createAnswer,
+                          child: const Text("Answer"),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                          onPressed: _setRemoteDescription,
+                          child: const Text("Set Remote Description"),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                          onPressed: _addCandidate,
+                          child: const Text("Set Candidate"),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
           ],
