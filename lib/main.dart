@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
         print(json.encode({
           'candidate': e.candidate.toString(),
           'sdpMid': e.sdpMid.toString(),
-          'sdpMlineIndex': e.sdpMLineIndex,
+          'sdpMlineIndex': e.sdpMLineIndex.toString(),
         }));
       }
     };
