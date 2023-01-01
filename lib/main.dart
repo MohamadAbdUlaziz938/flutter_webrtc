@@ -40,7 +40,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final myOffer = TextEditingController();
   final myAnswer = TextEditingController();
   final myCandidate = TextEditingController();
-
   bool _offer = false;
 
   RTCPeerConnection? _peerConnection;
